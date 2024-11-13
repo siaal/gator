@@ -10,9 +10,6 @@ import (
 )
 
 func handlerFollow(s *State, cmd Command) error {
-	if len(cmd.Args) != 1 {
-		return fmt.Errorf("follow requires 1 argument {feed name}, got %+v", cmd.Args)
-	}
 	feedURL := cmd.Args[0]
 	userName := s.Config.CurrentUsername
 	now := time.Now().UTC()
@@ -40,6 +37,14 @@ func handlerFollowing(s *State, cmd Command) error {
 	}
 	for _, followed := range following {
 		fmt.Printf("* %s\n", followed.Name)
+	}
+	return nil
+}
+
+func handlerUnfollow(s *State, cmd Command) error {
+	ctx := context.Background()
+	if err := s.DB.Unfollow(ctx, database.UnfollowParams{Username: s.Config.CurrentUsername, FeedUrl: cmd.Args[0]}); err != nil {
+		return fmt.Errorf("could not unfollow %s, %w", cmd.Args[0], err)
 	}
 	return nil
 }

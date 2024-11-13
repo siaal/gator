@@ -32,18 +32,19 @@ func DefaultCommands() Commands {
 	cmds := Commands{Cmds: map[string]CmdHandler{}}
 
 	// Users
-	cmds.Register("login", handlerLogin)
-	cmds.Register("register", handlerRegister)
+	cmds.Register("login", requireArgsNum(1, handlerLogin))
+	cmds.Register("register", requireArgsNum(1, handlerRegister))
 	cmds.Register("reset", handlerReset)
 	cmds.Register("users", handlerUsers)
 
 	// Feeds
 	cmds.Register("agg", requireLoggedIn(handlerAggregate))
-	cmds.Register("addfeed", requireLoggedIn(handlerAddFeed))
+	cmds.Register("addfeed", requireLoggedIn(requireArgsNum(2, handlerAddFeed)))
 	cmds.Register("feeds", requireLoggedIn(handlerFeeds))
 
 	// Follows
-	cmds.Register("follow", requireLoggedIn(handlerFollow))
+	cmds.Register("follow", requireLoggedIn(requireArgsNum(1, handlerFollow)))
 	cmds.Register("following", requireLoggedIn(handlerFollowing))
+	cmds.Register("unfollow", requireLoggedIn(requireArgsNum(1, handlerUnfollow)))
 	return cmds
 }

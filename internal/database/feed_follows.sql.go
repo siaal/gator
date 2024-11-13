@@ -105,3 +105,20 @@ func (q *Queries) GetFollowing(ctx context.Context, username string) ([]GetFollo
 	}
 	return items, nil
 }
+
+const unfollow = `-- name: Unfollow :exec
+DELETE 
+FROM feed_follows
+WHERE user_id = (SELECT id FROM users WHERE users.name = $1)
+    AND feed_id = (SELECT id FROM feeds WHERE feeds.url = $2)
+`
+
+type UnfollowParams struct {
+	Username string
+	FeedUrl  string
+}
+
+func (q *Queries) Unfollow(ctx context.Context, arg UnfollowParams) error {
+	_, err := q.db.ExecContext(ctx, unfollow, arg.Username, arg.FeedUrl)
+	return err
+}

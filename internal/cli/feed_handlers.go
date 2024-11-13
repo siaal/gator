@@ -21,9 +21,6 @@ func handlerFeeds(s *State, cmd Command) error {
 	return nil
 }
 func handlerAddFeed(s *State, cmd Command) error {
-	if len(cmd.Args) != 2 {
-		return fmt.Errorf("addfeed requires 2 arguments: {name} {url}. Got: %+v", cmd.Args)
-	}
 	feedName := cmd.Args[0]
 	feedURL := cmd.Args[1]
 	ctx := context.Background()

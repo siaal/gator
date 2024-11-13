@@ -34,9 +34,6 @@ func handlerReset(s *State, cmd Command) error {
 }
 
 func handlerLogin(s *State, cmd Command) error {
-	if len(cmd.Args) != 1 {
-		return fmt.Errorf("login takes 1 argument {username}, got: %d", len(cmd.Args))
-	}
 	username := cmd.Args[0]
 	user, err := s.DB.GetUser(context.Background(), username)
 	if err != nil {
@@ -51,9 +48,6 @@ func handlerLogin(s *State, cmd Command) error {
 }
 
 func handlerRegister(s *State, cmd Command) error {
-	if len(cmd.Args) != 1 {
-		return fmt.Errorf("register takes 1 argument {username}, got: %d", len(cmd.Args))
-	}
 	username := cmd.Args[0]
 	now := time.Now().UTC()
 	userParams := database.CreateUserParams{
