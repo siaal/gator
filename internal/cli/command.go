@@ -2,13 +2,13 @@ package cli
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"log/slog"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/siaal/gator/internal/database"
+	"github.com/siaal/gator/rss"
 )
 
 type Command struct {
@@ -63,10 +63,7 @@ func handlerRegister(s *State, cmd Command) error {
 		return fmt.Errorf("register takes 1 argument {username}, got: %d", len(cmd.Args))
 	}
 	username := cmd.Args[0]
-	now := sql.NullTime{
-		Time:  time.Now(),
-		Valid: true,
-	}
+	now := time.Now().UTC()
 	userParams := database.CreateUserParams{
 
 		ID:        uuid.New(),
@@ -84,6 +81,17 @@ func handlerRegister(s *State, cmd Command) error {
 	}
 	fmt.Println("User created: " + user.Name)
 	slog.Debug("Created user", "user", user)
+	return nil
+}
+
+func handlerAggregate(s *State, cmd Command) error {
+	url := "https://www.wagslane.dev/index.xml"
+	ctx := context.Background()
+	feed, err := rss.FetchFeed(ctx, url)
+	if err != nil {
+		return fmt.Errorf("feed fetch err: %w", err)
+	}
+	fmt.Println(feed)
 	return nil
 }
 
@@ -110,5 +118,6 @@ func DefaultCommands() Commands {
 	cmds.Register("register", handlerRegister)
 	cmds.Register("reset", handlerReset)
 	cmds.Register("users", handlerUsers)
+	cmds.Register("agg", handlerAggregate)
 	return cmds
 }

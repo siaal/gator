@@ -7,7 +7,7 @@ package database
 
 import (
 	"context"
-	"database/sql"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -29,8 +29,8 @@ RETURNING id, created_at, updated_at, name
 
 type CreateUserParams struct {
 	ID        uuid.UUID
-	CreatedAt sql.NullTime
-	UpdatedAt sql.NullTime
+	CreatedAt time.Time
+	UpdatedAt time.Time
 	Name      string
 }
 
@@ -72,6 +72,7 @@ func (q *Queries) GetUser(ctx context.Context, name string) (User, error) {
 const getUsers = `-- name: GetUsers :many
 SELECT id, created_at, updated_at, name
 FROM users
+ORDER BY name ASC
 `
 
 func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
