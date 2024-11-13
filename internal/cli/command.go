@@ -84,6 +84,53 @@ func handlerRegister(s *State, cmd Command) error {
 	return nil
 }
 
+func handlerFeeds(s *State, cmd Command) error {
+	feeds, err := s.DB.GetFeeds(context.Background())
+	if err != nil {
+		return fmt.Errorf("fetch err: %w", err)
+	}
+	for _, feed := range feeds {
+		fmt.Printf("FEED\n* Name: %s\n* URL : %s\n* User: %s\n\n", feed.Name, feed.Url, feed.UserName)
+	}
+	return nil
+}
+func handlerAddFeed(s *State, cmd Command) error {
+	if len(cmd.Args) != 2 {
+		return fmt.Errorf("addfeed requires 2 arguments: {name} {url}. Got: %+v", cmd.Args)
+	}
+	feedName := cmd.Args[0]
+	feedURL := cmd.Args[1]
+	ctx := context.Background()
+	now := time.Now().UTC()
+	addFeedParam := database.AddFeedParams{
+		ID:        uuid.New(),
+		Name:      feedName,
+		Url:       feedURL,
+		CreatedAt: now,
+		UpdatedAt: now,
+		Username:  s.Config.CurrentUsername,
+	}
+	feed, err := s.DB.AddFeed(ctx, addFeedParam)
+	if err != nil {
+		return fmt.Errorf("failed to add feed: %w", err)
+	}
+	fmt.Println(feed)
+	ctx = context.Background()
+	ffArgs := database.CreateFeedFollowParams{
+		ID:        uuid.New(),
+		UpdatedAt: now,
+		CreatedAt: now,
+		FeedUrl:   feedURL,
+		Username:  s.Config.CurrentUsername,
+	}
+	ff, err := s.DB.CreateFeedFollow(ctx, ffArgs)
+	if err != nil {
+		return fmt.Errorf("Successfully added feed, but failed to follow: %w", err)
+	}
+	fmt.Println(ff)
+	return nil
+}
+
 func handlerAggregate(s *State, cmd Command) error {
 	url := "https://www.wagslane.dev/index.xml"
 	ctx := context.Background()
@@ -112,6 +159,40 @@ func (c *Commands) Run(s *State, cmd Command) error {
 	return callback(s, cmd)
 }
 
+func handlerFollow(s *State, cmd Command) error {
+	if len(cmd.Args) != 1 {
+		return fmt.Errorf("follow requires 1 argument {feed name}, got %+v", cmd.Args)
+	}
+	feedURL := cmd.Args[0]
+	userName := s.Config.CurrentUsername
+	now := time.Now().UTC()
+	args := database.CreateFeedFollowParams{
+		ID:        uuid.New(),
+		FeedUrl:   feedURL,
+		Username:  userName,
+		UpdatedAt: now,
+		CreatedAt: now,
+	}
+	ctx := context.Background()
+	feed, err := s.DB.CreateFeedFollow(ctx, args)
+	if err != nil {
+		return fmt.Errorf("failed to create feed follow: %w", err)
+	}
+	fmt.Println(feed)
+	return nil
+}
+
+func handlerFollowing(s *State, cmd Command) error {
+	ctx := context.Background()
+	following, err := s.DB.GetFollowing(ctx, s.Config.CurrentUsername)
+	if err != nil {
+		return fmt.Errorf("fetch err: %w", err)
+	}
+	for _, followed := range following {
+		fmt.Printf("* %s\n", followed.Name)
+	}
+	return nil
+}
 func DefaultCommands() Commands {
 	cmds := Commands{Cmds: map[string]CmdHandler{}}
 	cmds.Register("login", handlerLogin)
@@ -119,5 +200,9 @@ func DefaultCommands() Commands {
 	cmds.Register("reset", handlerReset)
 	cmds.Register("users", handlerUsers)
 	cmds.Register("agg", handlerAggregate)
+	cmds.Register("addfeed", handlerAddFeed)
+	cmds.Register("feeds", handlerFeeds)
+	cmds.Register("follow", handlerFollow)
+	cmds.Register("following", handlerFollowing)
 	return cmds
 }
