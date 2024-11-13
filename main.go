@@ -6,10 +6,11 @@ import (
 	"os"
 
 	"github.com/siaal/gator/internal/cli"
+	"github.com/siaal/gator/internal/state"
 )
 
 func main() {
-	state, err := cli.NewState()
+	st, err := state.NewState()
 	if err != nil {
 		slog.Error("Failed to initialise cli", "err", err)
 		os.Exit(1)
@@ -23,7 +24,7 @@ func main() {
 	cmd := cli.Command{}
 	cmd.Name = args[0]
 	cmd.Args = args[1:]
-	if err = cmds.Run(&state, cmd); err != nil {
+	if err = cmds.Run(&st, cmd); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}

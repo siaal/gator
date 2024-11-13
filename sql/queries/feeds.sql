@@ -19,3 +19,14 @@ FROM
 
 -- name: ClearFeeds :exec
 DELETE FROM feeds;
+
+-- name: MarkFeedFetched :exec
+UPDATE feeds
+SET last_fetched_at = @now, updated_at = @now
+WHERE id = @id;
+
+
+-- name: NextToFetch :one
+SELECT *
+FROM feeds
+ORDER BY last_fetched_at ASC NULLS FIRST;

@@ -7,9 +7,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/siaal/gator/internal/database"
+	"github.com/siaal/gator/internal/state"
 )
 
-func handlerFollow(s *State, cmd Command) error {
+func handlerFollow(s *state.State, cmd Command) error {
 	feedURL := cmd.Args[0]
 	userName := s.Config.CurrentUsername
 	now := time.Now().UTC()
@@ -29,7 +30,7 @@ func handlerFollow(s *State, cmd Command) error {
 	return nil
 }
 
-func handlerFollowing(s *State, cmd Command) error {
+func handlerFollowing(s *state.State, cmd Command) error {
 	ctx := context.Background()
 	following, err := s.DB.GetFollowing(ctx, s.Config.CurrentUsername)
 	if err != nil {
@@ -41,7 +42,7 @@ func handlerFollowing(s *State, cmd Command) error {
 	return nil
 }
 
-func handlerUnfollow(s *State, cmd Command) error {
+func handlerUnfollow(s *state.State, cmd Command) error {
 	ctx := context.Background()
 	if err := s.DB.Unfollow(ctx, database.UnfollowParams{Username: s.Config.CurrentUsername, FeedUrl: cmd.Args[0]}); err != nil {
 		return fmt.Errorf("could not unfollow %s, %w", cmd.Args[0], err)

@@ -2,6 +2,8 @@ package cli
 
 import (
 	"fmt"
+
+	"github.com/siaal/gator/internal/state"
 )
 
 type Command struct {
@@ -9,7 +11,7 @@ type Command struct {
 	Args []string
 }
 
-type CmdHandler func(*State, Command) error
+type CmdHandler func(*state.State, Command) error
 
 type Commands struct {
 	Cmds map[string]CmdHandler
@@ -20,7 +22,7 @@ func (c *Commands) Register(name string, f CmdHandler) error {
 	return nil
 }
 
-func (c *Commands) Run(s *State, cmd Command) error {
+func (c *Commands) Run(s *state.State, cmd Command) error {
 	callback, ok := c.Cmds[cmd.Name]
 	if !ok {
 		return fmt.Errorf("unknown cmd: %s", cmd.Name)

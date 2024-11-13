@@ -8,9 +8,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/siaal/gator/internal/database"
+	"github.com/siaal/gator/internal/state"
 )
 
-func handlerUsers(s *State, _ Command) error {
+func handlerUsers(s *state.State, _ Command) error {
 	users, err := s.DB.GetUsers(context.Background())
 	if err != nil {
 		return fmt.Errorf("db err: %w", err)
@@ -24,7 +25,7 @@ func handlerUsers(s *State, _ Command) error {
 	}
 	return nil
 }
-func handlerReset(s *State, cmd Command) error {
+func handlerReset(s *state.State, cmd Command) error {
 	err := s.DB.ClearUsers(context.Background())
 	if err != nil {
 		return err
@@ -33,7 +34,7 @@ func handlerReset(s *State, cmd Command) error {
 	return nil
 }
 
-func handlerLogin(s *State, cmd Command) error {
+func handlerLogin(s *state.State, cmd Command) error {
 	username := cmd.Args[0]
 	user, err := s.DB.GetUser(context.Background(), username)
 	if err != nil {
@@ -47,7 +48,7 @@ func handlerLogin(s *State, cmd Command) error {
 	return nil
 }
 
-func handlerRegister(s *State, cmd Command) error {
+func handlerRegister(s *state.State, cmd Command) error {
 	username := cmd.Args[0]
 	now := time.Now().UTC()
 	userParams := database.CreateUserParams{

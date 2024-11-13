@@ -1,4 +1,4 @@
-package cli
+package state
 
 import (
 	"database/sql"

@@ -7,10 +7,11 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/siaal/gator/internal/database"
+	"github.com/siaal/gator/internal/state"
 	"github.com/siaal/gator/rss"
 )
 
-func handlerFeeds(s *State, cmd Command) error {
+func handlerFeeds(s *state.State, cmd Command) error {
 	feeds, err := s.DB.GetFeeds(context.Background())
 	if err != nil {
 		return fmt.Errorf("fetch err: %w", err)
@@ -20,7 +21,7 @@ func handlerFeeds(s *State, cmd Command) error {
 	}
 	return nil
 }
-func handlerAddFeed(s *State, cmd Command) error {
+func handlerAddFeed(s *state.State, cmd Command) error {
 	feedName := cmd.Args[0]
 	feedURL := cmd.Args[1]
 	ctx := context.Background()
@@ -54,13 +55,20 @@ func handlerAddFeed(s *State, cmd Command) error {
 	return nil
 }
 
-func handlerAggregate(s *State, cmd Command) error {
-	url := "https://www.wagslane.dev/index.xml"
-	ctx := context.Background()
-	feed, err := rss.FetchFeed(ctx, url)
-	if err != nil {
-		return fmt.Errorf("feed fetch err: %w", err)
+func handlerAggregate(s *state.State, cmd Command) error {
+	interval := 1 * time.Hour
+	if len(cmd.Args) == 1 {
+		int, err := time.ParseDuration(cmd.Args[0])
+		if err != nil {
+			return fmt.Errorf("Failed to parse arg as time interval: %s %w", cmd.Args[0], err)
+		}
+		interval = int
 	}
-	fmt.Println(feed)
-	return nil
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	for ; ; <-ticker.C {
+		if err := rss.ScrapeFeeds(s); err != nil {
+			return err
+		}
+	}
 }
